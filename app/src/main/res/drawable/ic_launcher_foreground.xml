@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer Glow Circle -->
+    <path
+        android:fillColor="#151DB954"
+        android:pathData="M54,18 A36,36 0 1 0 54,90 A36,36 0 1 0 54,18 Z" />
+
+    <!-- Headphone Arc / Music Wave -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#1DB954"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:pathData="M33,56 C33,40 42,28 54,28 C66,28 75,40 75,56" />
+
+    <!-- Left Ear Cup -->
+    <path
+        android:fillColor="#1DB954"
+        android:pathData="M29,52 L37,52 A3,3 0 0 1 40,55 L40,69 A3,3 0 0 1 37,72 L29,72 A3,3 0 0 1 26,69 L26,55 A3,3 0 0 1 29,52 Z" />
+
+    <!-- Right Ear Cup -->
+    <path
+        android:fillColor="#1DB954"
+        android:pathData="M71,52 L79,52 A3,3 0 0 1 82,55 L82,69 A3,3 0 0 1 79,72 L71,72 A3,3 0 0 1 68,69 L68,55 A3,3 0 0 1 71,52 Z" />
+
+    <!-- Center Play/Soundwave triangle forming 'A' -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48,46 L64,56 L48,66 Z" />
+
+    <!-- Audio Frequency Bars -->
+    <path
+        android:fillColor="#1DB954"
+        android:pathData="M45,76 L47,76 A1,1 0 0 1 48,77 L48,81 A1,1 0 0 1 47,82 L45,82 A1,1 0 0 1 44,81 L44,77 A1,1 0 0 1 45,76 Z" />
+    <path
+        android:fillColor="#1DB954"
+        android:pathData="M51,74 L53,74 A1,1 0 0 1 54,75 L54,83 A1,1 0 0 1 53,84 L51,84 A1,1 0 0 1 50,83 L50,75 A1,1 0 0 1 51,74 Z" />
+    <path
+        android:fillColor="#1DB954"
+        android:pathData="M57,74 L59,74 A1,1 0 0 1 60,75 L60,83 A1,1 0 0 1 59,84 L57,84 A1,1 0 0 1 56,83 L56,75 A1,1 0 0 1 57,74 Z" />
+    <path
+        android:fillColor="#1DB954"
+        android:pathData="M63,76 L65,76 A1,1 0 0 1 66,77 L66,81 A1,1 0 0 1 65,82 L63,82 A1,1 0 0 1 62,81 L62,77 A1,1 0 0 1 63,76 Z" />
+</vector>

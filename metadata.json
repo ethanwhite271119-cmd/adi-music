@@ -1,0 +1,6 @@
+{
+  "name": "Adi Music",
+  "description": "Spotify-grade Android music streaming and offline player app with background playback, synchronized lyrics, and offline caching.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
