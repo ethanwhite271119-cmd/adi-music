@@ -1,7 +1,7 @@
 
 <div align="center">
 
-<img src="https://i.postimg.cc/jdT3tM4c/Screenshot-2026-10-25-14-08-38-80-752d8aae83b40248d21845b7579a970b.jpg" width="180" alt="Adi Music Logo">
+<img src="https://i.postimg.cc/rFSmtw4j/file-00000000ba348211808019744308d977.png" width="180" alt="Adi Music Logo">
 
 # 🎵 Adi Music
 
