@@ -1,41 +1,45 @@
 
 # 🎵 Adi Music — Android Music Player
 
-A modern Android music player concept featuring a dark AMOLED-style interface, vibrant green accents, music discovery, playback controls, and audio customization.
+A modern Android music player concept featuring a dark AMOLED-style interface, vibrant green accents, music discovery, playback controls, audio customization, and listening analytics.
 
 ## 📱 App UI Screenshots
 
-Here is a preview of the Adi Music app interface, organized in a compact 2-column grid.
-
 <table>
   <tr>
-    <td align="center" width="50%">
-      <b>🏠 Home Screen</b><br><br>
-      <img src="https://i.postimg.cc/YCgvRSYX/Screenshot-2026-10-25-14-34-13-78-752d8aae83b40248d21845b7579a970b.jpg" width="220" alt="Adi Music Home Screen">
+    <td align="center" width="25%">
+      <b>🏠 Home</b><br><br>
+      <img src="https://i.postimg.cc/YCgvRSYX/Screenshot-2026-10-25-14-34-13-78-752d8aae83b40248d21845b7579a970b.jpg" width="100%" alt="Adi Music Home Screen">
     </td>
-    <td align="center" width="50%">
-      <b>🔍 Search Screen</b><br><br>
-      <img src="https://i.postimg.cc/pL8mCdzq/Screenshot-2026-10-25-14-07-26-20-752d8aae83b40248d21845b7579a970b.jpg" width="220" alt="Adi Music Search Screen">
+    <td align="center" width="25%">
+      <b>🔍 Search</b><br><br>
+      <img src="https://i.postimg.cc/pL8mCdzq/Screenshot-2026-10-25-14-07-26-20-752d8aae83b40248d21845b7579a970b.jpg" width="100%" alt="Adi Music Search Screen">
     </td>
-  </tr>
-  <tr>
-    <td align="center" width="50%">
-      <b>🎵 Your Library</b><br><br>
-      <img src="https://i.postimg.cc/9QTDbfZ1/Screenshot-2026-10-25-14-07-17-90-752d8aae83b40248d21845b7579a970b.jpg" width="220" alt="Adi Music Library Screen">
+    <td align="center" width="25%">
+      <b>🎵 Library</b><br><br>
+      <img src="https://i.postimg.cc/9QTDbfZ1/Screenshot-2026-10-25-14-07-17-90-752d8aae83b40248d21845b7579a970b.jpg" width="100%" alt="Adi Music Library Screen">
     </td>
-    <td align="center" width="50%">
-      <b>🎧 Now Playing</b><br><br>
-      <img src="https://i.postimg.cc/nLJCPtGT/Screenshot-2026-10-25-14-35-13-39-752d8aae83b40248d21845b7579a970b.jpg" width="220" alt="Adi Music Player Screen">
+    <td align="center" width="25%">
+      <b>🎧 Player</b><br><br>
+      <img src="https://i.postimg.cc/nLJCPtGT/Screenshot-2026-10-25-14-35-13-39-752d8aae83b40248d21845b7579a970b.jpg" width="100%" alt="Adi Music Player Screen">
     </td>
   </tr>
   <tr>
-    <td align="center" width="50%">
-      <b>🎚️ Audio Equalizer & FX</b><br><br>
-      <img src="https://i.postimg.cc/d0YLxKj6/Screenshot-2026-10-25-14-35-30-75-752d8aae83b40248d21845b7579a970b.jpg" width="220" alt="Adi Music Equalizer Screen">
+    <td align="center" width="25%">
+      <b>🎚️ Equalizer</b><br><br>
+      <img src="https://i.postimg.cc/d0YLxKj6/Screenshot-2026-10-25-14-35-30-75-752d8aae83b40248d21845b7579a970b.jpg" width="100%" alt="Audio Equalizer and FX">
     </td>
-    <td align="center" width="50%">
-      <b>📊 Adi Wrapped & Analytics</b><br><br>
-      <img src="https://i.postimg.cc/bvhsBj9W/Screenshot-2026-10-25-14-35-41-97-752d8aae83b40248d21845b7579a970b.jpg" width="220" alt="Adi Music Analytics Screen">
+    <td align="center" width="25%">
+      <b>📊 Analytics</b><br><br>
+      <img src="https://i.postimg.cc/bvhsBj9W/Screenshot-2026-10-25-14-35-41-97-752d8aae83b40248d21845b7579a970b.jpg" width="100%" alt="Adi Wrapped and Analytics">
+    </td>
+    <td align="center" width="25%">
+      <b>🎶 Music Home</b><br><br>
+      <img src="https://i.postimg.cc/YCgvRSYX/Screenshot-2026-10-25-14-34-13-78-752d8aae83b40248d21845b7579a970b.jpg" width="100%" alt="Music Discovery Interface">
+    </td>
+    <td align="center" width="25%">
+      <b>🎼 Discover</b><br><br>
+      <img src="https://i.postimg.cc/pL8mCdzq/Screenshot-2026-10-25-14-07-26-20-752d8aae83b40248d21845b7579a970b.jpg" width="100%" alt="Music Search and Discovery">
     </td>
   </tr>
 </table>
@@ -43,23 +47,27 @@ Here is a preview of the Adi Music app interface, organized in a compact 2-colum
 ## ✨ Features
 
 - 🏠 **Home Screen** — Music categories, recommendations, quick picks, and trending charts.
-- 🔍 **Search Screen** — Interface for finding songs, artists, and albums.
-- 🎶 **Your Library** — Sections for liked songs, playlists, downloads, and local audio.
-- 🎧 **Music Player** — Playback interface with play/pause, next/previous, shuffle, and repeat controls.
-- 🎚️ **Audio Equalizer & FX** — Five-band graphic equalizer interface and audio effect controls.
+- 🔍 **Music Search** — Search interface for songs, artists, and albums.
+- 🎵 **Your Library** — Liked songs, playlists, downloads, and local audio.
+- 🎧 **Now Playing** — Music playback interface with play/pause, next, previous, shuffle, and repeat controls.
+- 🎚️ **Audio Equalizer & FX** — Five-band graphic equalizer interface and audio customization.
 - 📊 **Adi Wrapped & Analytics** — Listening statistics, top artists, and music trends.
-- 🌑 **Dark Theme** — Black background with green accents.
+- 🌑 **Dark AMOLED Theme** — Dark background with vibrant green accents.
 - 📱 **Bottom Navigation** — Home, Search, and Your Library.
+- 🔋 **Battery Optimization Settings** — UI for background playback-related settings.
+- 💾 **Backup & Restore** — Interface for exporting music library data.
 
 ## 🛠️ Technology Stack
 
-- **Kotlin** — Android application programming language.
+- **Kotlin** — Android development language.
 - **Jetpack Compose** — Native Android UI toolkit.
-- **Material 3** — UI components and styling.
-- **AndroidX Media3 / ExoPlayer** — Planned or integrated audio playback engine.
-- **Room Database** — Planned local storage for playlists and listening history.
+- **Material 3** — Modern UI components.
+- **AndroidX Media3 / ExoPlayer** — Audio playback engine.
+- **Room Database** — Local database for playlists and listening history.
 
-## 📂 Suggested Repository Structure
+> Technology integrations depend on the implementation available in the project source code.
+
+## 📂 Repository Structure
 
 ```text
 AdiMusicAndroid/
@@ -87,42 +95,48 @@ AdiMusicAndroid/
 ## 🚀 Getting Started
 
 1. Clone or download the repository.
-2. Open the project in Android Studio.
-3. Wait for Gradle sync to complete.
-4. Select an Android emulator or connect a compatible device.
-5. Press **Run** to launch the application.
-
-> Requirements depend on the Android Gradle Plugin and SDK versions configured in the project.
+2. Open the Android project in Android Studio.
+3. Wait for Gradle synchronization to finish.
+4. Select an Android emulator or connect a compatible Android device.
+5. Press **Run** to build and launch the application.
 
 ## 🚧 Development Status
 
-The screenshots show the intended app interface. The availability of each feature depends on its implementation in the Android project.
+The screenshots represent the intended app interface. Actual functionality depends on the implemented Android source code.
 
-Potential areas for further development:
+Potential development tasks include:
 
-- Real-time song and artist search using a suitable music catalogue API.
-- Actual playback using AndroidX Media3 / ExoPlayer.
+- Real-time music catalogue search using a suitable API.
+- Audio playback using AndroidX Media3 / ExoPlayer.
 - Persistent playlists and liked songs using Room.
-- Local device audio browsing.
-- Working equalizer and audio effects.
-- Lyrics synchronization.
+- Local audio file browsing.
+- Functional equalizer and audio effects.
+- Synchronized lyrics.
 - Background playback and media notifications.
 - Listening analytics and statistics.
-- Offline playback where supported and legally permitted by the music source.
+- Offline playback where supported by the music provider.
 
-## 📸 Screenshot Information
+## 📸 Screenshot Notes
 
-The screenshots above use externally hosted image URLs. If a screenshot does not load, check whether its image-hosting link is still accessible.
+The screenshot grid uses externally hosted image links.
 
-To keep screenshots available long-term, you can also upload the six images into the repository's `screenshots/` directory and update the image links to use the repository files.
+- Six unique screenshots are included.
+- The last two cells reuse the Home and Search screenshots to complete the four-column layout.
+- Images must remain accessible on the external hosting service.
+- For long-term reliability, upload the screenshots into the repository's `screenshots/` folder and use repository-relative image paths.
 
 ## 🤝 Contributing
 
-Suggestions, bug reports, and improvements are welcome. Test your changes before submitting a pull request.
+Contributions, suggestions, and bug reports are welcome.
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Make and test your changes.
+4. Submit a pull request.
 
 ## 📄 License
 
-See [LICENSE](LICENSE) for the applicable project license. Add a license file to the repository if one does not already exist.
+See [LICENSE](LICENSE) for the project's licensing terms. Add a license file if the repository does not already contain one.
 
 ---
 
