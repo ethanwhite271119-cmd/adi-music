@@ -1,79 +1,95 @@
 
 # 🎵 Adi Music — Android Music Player
 
-A modern, dark-themed Android music player UI built with **Kotlin** and **Jetpack Compose**, featuring a black AMOLED-style interface with green accents.
+A modern Android music app concept featuring a dark AMOLED-style interface, vibrant green accents, music discovery, playback controls, and audio customization.
+
+## 📱 App UI Screenshots
+
+These screenshots showcase the Adi Music app interface.
+
+### 🏠 Home Screen
+![Adi Music Home Screen](screenshots/home.png)
+
+### 🔍 Search Screen
+![Adi Music Search Screen](screenshots/search.png)
+
+### 🎵 Your Library
+![Adi Music Library Screen](screenshots/library.png)
+
+### 🎧 Now Playing Screen
+![Adi Music Player Screen](screenshots/player.png)
+
+### 🎚️ Audio Equalizer & FX
+![Adi Music Equalizer Screen](screenshots/equalizer.png)
+
+### 📊 Adi Wrapped & Analytics
+![Adi Music Analytics Screen](screenshots/analytics.png)
 
 ## ✨ Features
 
-- 🏠 **Home Screen** — Music categories, quick picks, and trending sections.
-- 🔍 **Search** — Search demo songs and artists.
-- 🎶 **Your Library** — Liked songs, downloads, and local audio sections.
-- 🎨 **Dark Theme** — Black background, green highlights, and rounded cards.
-- 📱 **Bottom Navigation** — Home, Search, and Your Library.
-- 🎧 **Music Player UI** — Track cards with play buttons.
+- 🏠 Home screen with music categories and recommendations
+- 🔍 Search interface for songs, artists, and albums
+- 🎶 Library for liked songs, playlists, and local audio
+- 🎧 Full-screen music player UI
+- 🎚️ Five-band graphic equalizer interface
+- 📊 Listening statistics and top artists
+- 🌑 Dark theme with green accents
+- 📱 Android-friendly layout and bottom navigation
 
 ## 🛠️ Technology Stack
 
 - Kotlin
 - Jetpack Compose
 - Material 3
-- AndroidX Activity Compose
-- AndroidX Navigation Compose
+- AndroidX Media3 / ExoPlayer (planned playback integration)
+- Room Database (planned local storage)
 
-## 📂 Project Structure
+## 📂 Suggested Repository Structure
 
 ```text
 AdiMusicAndroid/
 ├── app/
-│   ├── build.gradle.kts
 │   └── src/main/
 │       ├── AndroidManifest.xml
 │       └── java/com/example/adimusic/
 │           └── MainActivity.kt
+├── screenshots/
+│   ├── home.png
+│   ├── search.png
+│   ├── library.png
+│   ├── player.png
+│   ├── equalizer.png
+│   └── analytics.png
+├── README.md
+├── REALME.md
 ├── build.gradle.kts
 ├── settings.gradle.kts
 ├── gradle.properties
-├── README.md
-├── Redmi.md
-├── REALME.md
-├── LICENSE
-└── .gitignore
+├── .gitignore
+└── LICENSE
 ```
 
 ## 🚀 Getting Started
 
-1. Download or clone this repository.
+1. Clone or download this repository.
 2. Open the project in Android Studio.
-3. Wait for Gradle sync to finish.
-4. Select an Android emulator or connected device.
-5. Click **Run** to launch the app.
+3. Allow Gradle to sync.
+4. Run the app on an Android emulator or compatible device.
 
-## 🔮 Planned Features
+## 🚧 Development Status
 
-- Real-time song and artist search using a music catalogue API.
-- Actual music playback with AndroidX Media3 / ExoPlayer.
-- Playlists and liked songs saved with Room.
-- Local device audio browsing.
-- Lyrics and playback settings.
-- Background playback.
-- Offline downloads where permitted by the music source.
+The screenshots represent the intended app UI. Features such as real-time music search, actual streaming playback, equalizer processing, analytics, and persistent library storage require working implementations and testing.
 
-## ⚠️ Current Status
+## 📸 Adding Screenshots to GitHub
 
-This project is an Android UI starter.
+1. Open your GitHub repository.
+2. Create a folder named `screenshots`.
+3. Upload your six screenshot images.
+4. Rename them to match the filenames in this document.
+5. Commit the changes.
 
-- Track names are demonstration data.
-- Play buttons are placeholders.
-- Live internet search, streaming, downloads, and persistent storage are not yet implemented.
-
-## 🤝 Contributing
-
-Contributions and suggestions are welcome! Please test changes before submitting a pull request.
+GitHub will display each image when its path and filename match.
 
 ## 📄 License
 
-Distributed under the MIT License. See [LICENSE](LICENSE).
-
----
-
-**Developed as the Adi Music Android app project.**
+See [LICENSE](LICENSE) for the project's licensing terms.
