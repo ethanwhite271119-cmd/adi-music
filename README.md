@@ -8,22 +8,22 @@ A modern Android music app concept featuring a dark AMOLED-style interface, vibr
 These screenshots showcase the Adi Music app interface.
 
 ### 🏠 Home Screen
-![Adi Music Home Screen](screenshots/home.png)
+![Adi Music Home Screen](https://i.postimg.cc/YCgvRSYX/Screenshot-2026-10-25-14-34-13-78-752d8aae83b40248d21845b7579a970b.jpg)
 
 ### 🔍 Search Screen
-![Adi Music Search Screen](screenshots/search.png)
+![Adi Music Search Screen](https://i.postimg.cc/pL8mCdzq/Screenshot-2026-10-25-14-07-26-20-752d8aae83b40248d21845b7579a970b.jpg)
 
 ### 🎵 Your Library
-![Adi Music Library Screen](screenshots/library.png)
+![Adi Music Library Screen](https://i.postimg.cc/9QTDbfZ1/Screenshot-2026-10-25-14-07-17-90-752d8aae83b40248d21845b7579a970b.jpg)
 
 ### 🎧 Now Playing Screen
-![Adi Music Player Screen](screenshots/player.png)
+![Adi Music Player Screen](https://i.postimg.cc/nLJCPtGT/Screenshot-2026-10-25-14-35-13-39-752d8aae83b40248d21845b7579a970b.jpg)
 
 ### 🎚️ Audio Equalizer & FX
-![Adi Music Equalizer Screen](screenshots/equalizer.png)
+![Adi Music Equalizer Screen](https://i.postimg.cc/d0YLxKj6/Screenshot-2026-10-25-14-35-30-75-752d8aae83b40248d21845b7579a970b.jpg)
 
 ### 📊 Adi Wrapped & Analytics
-![Adi Music Analytics Screen](screenshots/analytics.png)
+![Adi Music Analytics Screen](https://i.postimg.cc/bvhsBj9W/Screenshot-2026-10-25-14-35-41-97-752d8aae83b40248d21845b7579a970b.jpg)
 
 ## ✨ Features
 
