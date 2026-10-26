@@ -14,9 +14,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BluetoothAudio
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.DownloadDone
 import androidx.compose.material.icons.filled.Equalizer
@@ -25,6 +27,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Lyrics
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.QueueMusic
@@ -34,6 +37,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.Speaker
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -64,6 +68,9 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import coil.compose.AsyncImage
 import com.example.ui.MainViewModel
+import com.example.ui.ScreenTab
+import com.example.ui.components.AudioOutputDeviceSheet
+import com.example.ui.components.SleepTimerSheet
 import com.example.ui.theme.CardSurfaceVariant
 import com.example.ui.theme.ObsidianBlack
 import com.example.ui.theme.SpotifyGreen
@@ -85,11 +92,26 @@ fun NowPlayingScreen(
     val isShuffle by viewModel.controller.isShuffle.collectAsState()
     val repeatMode by viewModel.controller.repeatMode.collectAsState()
     val sleepTimerMin by viewModel.controller.sleepTimerMinutesLeft.collectAsState()
+    val isSleepTimerEndOfTrack by viewModel.controller.isSleepTimerEndOfTrack.collectAsState()
+    val bluetoothInfo by viewModel.controller.bluetoothDeviceInfo.collectAsState()
+
+    val lyrics by viewModel.lyrics.collectAsState()
+    val currentLyricLine by remember(lyrics, currentPosition) {
+        androidx.compose.runtime.derivedStateOf {
+            if (lyrics.isEmpty()) null
+            else {
+                val idx = lyrics.indexOfLast { it.timestampMs <= currentPosition }
+                if (idx >= 0) lyrics[idx] else null
+            }
+        }
+    }
 
     val song = currentSong ?: return
 
     var isSeeking by remember { mutableStateOf(false) }
     var seekProgress by remember { mutableFloatStateOf(0f) }
+    var showSleepTimerSheet by remember { mutableStateOf(false) }
+    var showAudioDeviceSheet by remember { mutableStateOf(false) }
 
     val currentSliderVal = if (isSeeking) {
         seekProgress
@@ -149,12 +171,26 @@ fun NowPlayingScreen(
                     )
                 }
 
-                IconButton(onClick = { viewModel.setQueueSheetVisible(true) }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "Options",
-                        tint = TextPrimary
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = {
+                        onDismiss()
+                        viewModel.setTab(ScreenTab.NOTIFICATION_CENTER)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Notifications,
+                            contentDescription = "Notification Control Center",
+                            tint = SpotifyGreen,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
+                    IconButton(onClick = { viewModel.setQueueSheetVisible(true) }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Options",
+                            tint = TextPrimary
+                        )
+                    }
                 }
             }
 
@@ -210,6 +246,57 @@ fun NowPlayingScreen(
                         contentDescription = "Like",
                         tint = if (song.isLiked) SpotifyGreen else TextPrimary,
                         modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+
+            // Live Synced Lyric Teaser Banner with Hindi & English Indian Support
+            if (currentLyricLine != null) {
+                val lyricsMode by viewModel.lyricsMode.collectAsState()
+                val line = currentLyricLine!!
+                val prim = line.getPrimaryText(lyricsMode)
+                val sec = line.getSecondaryText(lyricsMode)
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(CardSurfaceVariant.copy(alpha = 0.85f))
+                        .clickable { viewModel.setLyricsVisible(true) }
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Lyrics,
+                        contentDescription = null,
+                        tint = SpotifyGreen,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = prim,
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1
+                        )
+                        if (sec != null) {
+                            Text(
+                                text = sec,
+                                color = SpotifyGreen,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Normal,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = if (line.hasHindiContent()) "🇮🇳 HIN • ENG" else "LIVE",
+                        color = SpotifyGreen,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
@@ -306,6 +393,30 @@ fun NowPlayingScreen(
                 }
             }
 
+            // Audio Output / Bluetooth Device Indicator (Spotify Style)
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(CardSurfaceVariant.copy(alpha = 0.8f))
+                    .clickable { showAudioDeviceSheet = true }
+                    .padding(horizontal = 14.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = if (bluetoothInfo.isBluetoothConnected) Icons.Default.BluetoothAudio else Icons.Default.Speaker,
+                    contentDescription = "Audio Output",
+                    tint = if (bluetoothInfo.isBluetoothConnected) SpotifyGreen else TextSecondary,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = if (bluetoothInfo.isBluetoothConnected) "Listening on ${bluetoothInfo.deviceName}" else "Listening on This Phone",
+                    color = if (bluetoothInfo.isBluetoothConnected) SpotifyGreen else TextSecondary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
             // Bottom Utility Toolbar
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -330,14 +441,12 @@ fun NowPlayingScreen(
                     )
                 }
 
-                IconButton(onClick = {
-                    val nextTimer = if (sleepTimerMin > 0) 0 else 30
-                    viewModel.controller.startSleepTimer(nextTimer)
-                }) {
+                IconButton(onClick = { showSleepTimerSheet = true }) {
+                    val isTimerActive = sleepTimerMin > 0 || isSleepTimerEndOfTrack
                     Icon(
                         imageVector = Icons.Default.Timer,
                         contentDescription = "Sleep Timer",
-                        tint = if (sleepTimerMin > 0) SpotifyGreen else TextSecondary,
+                        tint = if (isTimerActive) SpotifyGreen else TextSecondary,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -360,6 +469,20 @@ fun NowPlayingScreen(
                     )
                 }
             }
+        }
+
+        if (showSleepTimerSheet) {
+            SleepTimerSheet(
+                musicController = viewModel.controller,
+                onDismiss = { showSleepTimerSheet = false }
+            )
+        }
+
+        if (showAudioDeviceSheet) {
+            AudioOutputDeviceSheet(
+                musicController = viewModel.controller,
+                onDismiss = { showAudioDeviceSheet = false }
+            )
         }
     }
 }

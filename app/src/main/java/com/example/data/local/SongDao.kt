@@ -64,6 +64,45 @@ interface SongDao {
     @Query("SELECT * FROM listening_history ORDER BY playedAt DESC LIMIT :limit")
     fun getRecentHistory(limit: Int = 30): Flow<List<ListeningHistoryEntity>>
 
+    @Query("""
+        SELECT 
+            h.historyId,
+            h.songId,
+            h.title,
+            h.artist,
+            h.artworkUri,
+            COALESCE(s.streamUrl, '') as streamUrl,
+            COALESCE(s.durationMs, 180000) as durationMs,
+            COALESCE(s.isLocal, 0) as isLocal,
+            COALESCE(s.isDownloaded, 0) as isDownloaded,
+            COALESCE(s.isLiked, 0) as isLiked,
+            COALESCE(s.genre, 'Music') as genre,
+            h.playedAt
+        FROM listening_history h
+        LEFT JOIN songs s ON h.songId = s.id
+        ORDER BY h.playedAt DESC
+        LIMIT :limit
+    """)
+    fun getPreviouslyPlayedRecords(limit: Int = 60): Flow<List<HistorySongRecord>>
+
+    @Query("""
+        SELECT s.* FROM songs s
+        INNER JOIN (
+            SELECT songId, MAX(playedAt) as maxPlayedAt
+            FROM listening_history
+            GROUP BY songId
+        ) h ON s.id = h.songId
+        ORDER BY h.maxPlayedAt DESC
+        LIMIT :limit
+    """)
+    fun getDistinctRecentlyPlayed(limit: Int = 20): Flow<List<SongEntity>>
+
+    @Query("DELETE FROM listening_history WHERE historyId = :historyId")
+    suspend fun deleteHistoryEntry(historyId: Long)
+
+    @Query("DELETE FROM listening_history")
+    suspend fun clearListeningHistory()
+
     @Query("SELECT COALESCE(SUM(durationListenedSeconds) / 60, 0) FROM listening_history")
     suspend fun getTotalListeningMinutes(): Long
 
@@ -73,3 +112,32 @@ interface SongDao {
     @Query("SELECT * FROM songs ORDER BY playCount DESC LIMIT :limit")
     suspend fun getTopSongs(limit: Int = 5): List<SongEntity>
 }
+
+data class HistorySongRecord(
+    val historyId: Long,
+    val songId: String,
+    val title: String,
+    val artist: String,
+    val artworkUri: String,
+    val streamUrl: String,
+    val durationMs: Long,
+    val isLocal: Boolean,
+    val isDownloaded: Boolean,
+    val isLiked: Boolean,
+    val genre: String,
+    val playedAt: Long
+)
+
+fun HistorySongRecord.toSong(): com.example.data.model.Song = com.example.data.model.Song(
+    id = songId,
+    title = title,
+    artist = artist,
+    album = "Previously Listened",
+    artworkUri = artworkUri,
+    streamUrl = streamUrl,
+    durationMs = durationMs,
+    isLocal = isLocal,
+    isDownloaded = isDownloaded,
+    isLiked = isLiked,
+    genre = genre
+)

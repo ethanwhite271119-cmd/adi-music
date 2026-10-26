@@ -36,12 +36,15 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -66,6 +69,7 @@ import com.example.ui.theme.TextSecondary
 import com.example.ui.viewmodel.LocalSongsUiState
 import com.example.ui.viewmodel.LocalSongsViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocalSongsScreen(
     viewModel: LocalSongsViewModel,
@@ -298,20 +302,38 @@ fun LocalSongsScreen(
                             Text("No tracks match \"$searchQuery\"", color = TextSecondary, fontSize = 15.sp)
                         }
                     } else {
-                        LazyColumn(
+                        val isRefreshing = uiState is LocalSongsUiState.Loading
+                        val pullToRefreshState = androidx.compose.material3.pulltorefresh.rememberPullToRefreshState()
+                        PullToRefreshBox(
+                            isRefreshing = isRefreshing,
+                            onRefresh = { viewModel.loadLocalSongs() },
+                            state = pullToRefreshState,
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(bottom = 120.dp, top = 8.dp)
-                        ) {
-                            items(state.filteredSongs, key = { it.id }) { song ->
-                                val isCurrentlyPlaying = currentPlayingSong?.streamUrl == song.dataPath
-
-                                LocalSongRow(
-                                    song = song,
-                                    isPlaying = isCurrentlyPlaying,
-                                    onClick = {
-                                        viewModel.playLocalSong(song, state.filteredSongs)
-                                    }
+                            indicator = {
+                                PullToRefreshDefaults.Indicator(
+                                    state = pullToRefreshState,
+                                    isRefreshing = isRefreshing,
+                                    modifier = Modifier.align(Alignment.TopCenter),
+                                    containerColor = CardSurface,
+                                    color = SpotifyGreen
                                 )
+                            }
+                        ) {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(bottom = 120.dp, top = 8.dp)
+                            ) {
+                                items(state.filteredSongs, key = { it.id }) { song ->
+                                    val isCurrentlyPlaying = currentPlayingSong?.streamUrl == song.dataPath
+
+                                    LocalSongRow(
+                                        song = song,
+                                        isPlaying = isCurrentlyPlaying,
+                                        onClick = {
+                                            viewModel.playLocalSong(song, state.filteredSongs)
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

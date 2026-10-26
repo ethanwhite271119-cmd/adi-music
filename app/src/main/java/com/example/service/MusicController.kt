@@ -6,8 +6,11 @@ import android.content.Intent
 import android.media.audiofx.BassBoost
 import android.media.audiofx.Equalizer
 import android.net.Uri
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import android.view.KeyEvent
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -46,6 +49,21 @@ class MusicController(private val context: Context) {
         .setHandleAudioBecomingNoisy(true)
         .build()
 
+    val bluetoothDeviceManager = BluetoothDeviceManager(
+        context = context,
+        onPauseRequested = {
+            if (player.isPlaying) {
+                player.pause()
+            }
+        },
+        onResumeRequested = {
+            if (!player.isPlaying && _currentSong.value != null) {
+                player.play()
+            }
+        }
+    )
+    val bluetoothDeviceInfo: StateFlow<BluetoothDeviceInfo> = bluetoothDeviceManager.deviceInfo
+
     val mediaSession: MediaSession by lazy {
         val sessionActivityPendingIntent = PendingIntent.getActivity(
             context,
@@ -56,6 +74,7 @@ class MusicController(private val context: Context) {
 
         MediaSession.Builder(context, player)
             .setSessionActivity(sessionActivityPendingIntent)
+            .setCallback(MediaSessionCallback())
             .build()
     }
 
@@ -92,6 +111,12 @@ class MusicController(private val context: Context) {
     private val _sleepTimerMinutesLeft = MutableStateFlow(0)
     val sleepTimerMinutesLeft: StateFlow<Int> = _sleepTimerMinutesLeft.asStateFlow()
 
+    private val _sleepTimerSecondsLeft = MutableStateFlow(0L)
+    val sleepTimerSecondsLeft: StateFlow<Long> = _sleepTimerSecondsLeft.asStateFlow()
+
+    private val _isSleepTimerEndOfTrack = MutableStateFlow(false)
+    val isSleepTimerEndOfTrack: StateFlow<Boolean> = _isSleepTimerEndOfTrack.asStateFlow()
+
     // Equalizer state
     private val _equalizerBands = MutableStateFlow(listOf(0, 0, 0, 0, 0)) // 5 bands in dB (-10 to +10)
     val equalizerBands: StateFlow<List<Int>> = _equalizerBands.asStateFlow()
@@ -105,6 +130,11 @@ class MusicController(private val context: Context) {
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 _isPlaying.value = isPlaying
+                if (isPlaying) {
+                    try {
+                        AdiMusicService.startService(context)
+                    } catch (_: Exception) {}
+                }
             }
 
             override fun onPlaybackStateChanged(playbackState: Int) {
@@ -112,11 +142,20 @@ class MusicController(private val context: Context) {
                     _duration.value = player.duration.coerceAtLeast(0L)
                     attachAudioEffects()
                 } else if (playbackState == Player.STATE_ENDED) {
-                    skipNext()
+                    if (_isSleepTimerEndOfTrack.value) {
+                        cancelSleepTimer()
+                        player.pause()
+                    } else {
+                        skipNext()
+                    }
                 }
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                if (_isSleepTimerEndOfTrack.value && reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+                    cancelSleepTimer()
+                    player.pause()
+                }
                 val mediaId = mediaItem?.mediaId
                 val found = _queue.value.find { it.id == mediaId }
                 if (found != null) {
@@ -135,6 +174,8 @@ class MusicController(private val context: Context) {
                 delay(300)
             }
         }
+
+        bluetoothDeviceManager.startListening()
     }
 
     private fun attachAudioEffects() {
@@ -172,7 +213,7 @@ class MusicController(private val context: Context) {
                         .setTitle(s.title)
                         .setArtist(s.artist)
                         .setAlbumTitle(s.album)
-                        .setArtworkUri(Uri.parse(s.artworkUri))
+                        .setArtworkUri(if (s.artworkUri.isNotBlank()) Uri.parse(s.artworkUri) else null)
                         .build()
                 )
                 .build()
@@ -279,33 +320,136 @@ class MusicController(private val context: Context) {
     }
 
     fun startSleepTimer(minutes: Int) {
-        sleepTimerJob?.cancel()
-        _sleepTimerMinutesLeft.value = minutes
+        cancelSleepTimer()
         if (minutes <= 0) return
 
+        _isSleepTimerEndOfTrack.value = false
+        _sleepTimerMinutesLeft.value = minutes
+        _sleepTimerSecondsLeft.value = minutes * 60L
+
         sleepTimerJob = scope.launch {
-            var remaining = minutes
-            while (remaining > 0) {
-                delay(60000L)
-                remaining--
-                _sleepTimerMinutesLeft.value = remaining
+            var remainingSec = minutes * 60L
+            while (remainingSec > 0) {
+                delay(1000L)
+                remainingSec--
+                _sleepTimerSecondsLeft.value = remainingSec
+                _sleepTimerMinutesLeft.value = ((remainingSec + 59) / 60).toInt()
+
+                // Gentle volume fade-out during final 10 seconds
+                if (remainingSec in 1..10) {
+                    val fadeVolume = (remainingSec.toFloat() / 10f).coerceIn(0.05f, 1.0f)
+                    player.volume = fadeVolume
+                }
             }
             player.pause()
+            player.volume = 1.0f
             _isPlaying.value = false
+            _sleepTimerMinutesLeft.value = 0
+            _sleepTimerSecondsLeft.value = 0L
+            _isSleepTimerEndOfTrack.value = false
         }
+    }
+
+    fun startSleepTimerEndOfTrack() {
+        cancelSleepTimer()
+        _isSleepTimerEndOfTrack.value = true
+        _sleepTimerMinutesLeft.value = -1 // Special indicator for 'End of track'
     }
 
     fun cancelSleepTimer() {
         sleepTimerJob?.cancel()
+        sleepTimerJob = null
+        player.volume = 1.0f
         _sleepTimerMinutesLeft.value = 0
+        _sleepTimerSecondsLeft.value = 0L
+        _isSleepTimerEndOfTrack.value = false
     }
 
     fun release() {
         try {
+            bluetoothDeviceManager.stopListening()
             mediaSession.release()
             equalizer?.release()
             bassBoost?.release()
             player.release()
         } catch (_: Exception) {}
+    }
+
+    private inner class MediaSessionCallback : MediaSession.Callback {
+        private var lastHeadsetHookTime = 0L
+        private var headsetHookClickCount = 0
+        private val hookHandler = Handler(Looper.getMainLooper())
+        private val hookRunnable = Runnable {
+            when (headsetHookClickCount) {
+                1 -> togglePlayPause()
+                2 -> skipNext()
+                3 -> skipPrevious()
+                else -> togglePlayPause()
+            }
+            headsetHookClickCount = 0
+        }
+
+        override fun onMediaButtonEvent(
+            session: MediaSession,
+            controllerInfo: MediaSession.ControllerInfo,
+            intent: Intent
+        ): Boolean {
+            val keyEvent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT, KeyEvent::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT)
+            }
+
+            if (keyEvent != null && keyEvent.action == KeyEvent.ACTION_DOWN) {
+                when (keyEvent.keyCode) {
+                    KeyEvent.KEYCODE_MEDIA_PLAY -> {
+                        player.play()
+                        return true
+                    }
+                    KeyEvent.KEYCODE_MEDIA_PAUSE -> {
+                        player.pause()
+                        return true
+                    }
+                    KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
+                        togglePlayPause()
+                        return true
+                    }
+                    KeyEvent.KEYCODE_MEDIA_NEXT -> {
+                        skipNext()
+                        return true
+                    }
+                    KeyEvent.KEYCODE_MEDIA_PREVIOUS -> {
+                        skipPrevious()
+                        return true
+                    }
+                    KeyEvent.KEYCODE_MEDIA_STOP -> {
+                        player.pause()
+                        return true
+                    }
+                    KeyEvent.KEYCODE_HEADSETHOOK -> {
+                        val now = SystemClock.uptimeMillis()
+                        if (now - lastHeadsetHookTime < 400L) {
+                            headsetHookClickCount++
+                        } else {
+                            headsetHookClickCount = 1
+                        }
+                        lastHeadsetHookTime = now
+                        hookHandler.removeCallbacks(hookRunnable)
+                        hookHandler.postDelayed(hookRunnable, 350L)
+                        return true
+                    }
+                    KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
+                        seekTo((player.currentPosition + 10000L).coerceAtMost(player.duration))
+                        return true
+                    }
+                    KeyEvent.KEYCODE_MEDIA_REWIND -> {
+                        seekTo((player.currentPosition - 10000L).coerceAtLeast(0L))
+                        return true
+                    }
+                }
+            }
+            return super.onMediaButtonEvent(session, controllerInfo, intent)
+        }
     }
 }

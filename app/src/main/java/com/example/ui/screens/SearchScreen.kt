@@ -14,14 +14,28 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.speech.RecognizerIntent
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import java.util.Locale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -74,9 +88,37 @@ fun SearchScreen(
     val isLoading by viewModel.isSearchLoading.collectAsState()
     val currentSong by viewModel.controller.currentSong.collectAsState()
 
+    val context = LocalContext.current
+
+    val speechRecognizerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val matches = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            val spokenText = matches?.firstOrNull()?.trim()
+            if (!spokenText.isNullOrEmpty()) {
+                viewModel.setSearchQuery(spokenText)
+                Toast.makeText(context, "Voice Search: \"$spokenText\"", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    val micPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            launchVoiceSearch(context, speechRecognizerLauncher)
+        } else {
+            Toast.makeText(context, "Microphone permission needed to speak search", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     val filterChips = listOf("All", "Songs", "Artists", "Albums")
 
     val genres = listOf(
+        GenreCardData("🇮🇳 Bollywood Hits", MoodPop),
+        GenreCardData("🇮🇳 Hindi Romantic", MoodRAndB),
+        GenreCardData("🇮🇳 Indian Indie", MoodIndie),
         GenreCardData("Arijit Singh", MoodPop),
         GenreCardData("The Weeknd", MoodRAndB),
         GenreCardData("Travis Scott", MoodHipHop),
@@ -103,14 +145,14 @@ fun SearchScreen(
             modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
         )
 
-        // Real Search Input Bar
+        // Real Search Input Bar with Microphone
         OutlinedTextField(
             value = query,
             onValueChange = { viewModel.setSearchQuery(it) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
-            placeholder = { Text("Search any song, artist, or album...", color = TextMuted) },
+            placeholder = { Text("Search songs, artists, Hindi & English lyrics...", color = TextMuted) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
@@ -119,12 +161,39 @@ fun SearchScreen(
                 )
             },
             trailingIcon = {
-                if (query.isNotEmpty()) {
-                    IconButton(onClick = { viewModel.setSearchQuery("") }) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(end = 4.dp)
+                ) {
+                    if (query.isNotEmpty()) {
+                        IconButton(onClick = { viewModel.setSearchQuery("") }) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "Clear",
+                                tint = TextSecondary
+                            )
+                        }
+                    }
+
+                    // Microphone Search Button
+                    IconButton(
+                        onClick = {
+                            val hasPermission = ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.RECORD_AUDIO
+                            ) == PackageManager.PERMISSION_GRANTED
+
+                            if (hasPermission) {
+                                launchVoiceSearch(context, speechRecognizerLauncher)
+                            } else {
+                                micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                            }
+                        }
+                    ) {
                         Icon(
-                            imageVector = Icons.Default.Clear,
-                            contentDescription = "Clear",
-                            tint = TextSecondary
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = "Search from mic",
+                            tint = SpotifyGreen
                         )
                     }
                 }
@@ -140,6 +209,43 @@ fun SearchScreen(
                 unfocusedTextColor = TextPrimary
             )
         )
+
+        if (query.isEmpty()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 6.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(CardSurfaceVariant.copy(alpha = 0.6f))
+                    .clickable {
+                        val hasPermission = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.RECORD_AUDIO
+                        ) == PackageManager.PERMISSION_GRANTED
+
+                        if (hasPermission) {
+                            launchVoiceSearch(context, speechRecognizerLauncher)
+                        } else {
+                            micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                        }
+                    }
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Mic,
+                    contentDescription = null,
+                    tint = SpotifyGreen,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Tap mic to search songs, Bollywood hits, or Hindi & English lyrics",
+                    color = TextSecondary,
+                    fontSize = 12.sp
+                )
+            }
+        }
 
         // Category Filter Chips
         Row(
@@ -319,5 +425,21 @@ fun SearchScreen(
                 }
             }
         }
+    }
+}
+
+private fun launchVoiceSearch(
+    context: Context,
+    launcher: androidx.activity.result.ActivityResultLauncher<Intent>
+) {
+    try {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak song title, artist, or Hindi/English lyrics...")
+        }
+        launcher.launch(intent)
+    } catch (e: Exception) {
+        Toast.makeText(context, "Voice search is not available on this device", Toast.LENGTH_SHORT).show()
     }
 }

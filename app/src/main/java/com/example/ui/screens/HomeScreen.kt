@@ -23,6 +23,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Equalizer
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
@@ -68,19 +70,22 @@ fun HomeScreen(
     val homeCategory by viewModel.homeCategory.collectAsState()
     val isLoading by viewModel.isHomeLoading.collectAsState()
     val currentSong by viewModel.controller.currentSong.collectAsState()
+    val recentlyPlayed by viewModel.recentlyPlayedDistinct.collectAsState()
 
     val greeting = rememberGreeting()
-    val categories = listOf("All", "Music", "Relax", "Workout", "Gaming/Phonk")
+    val categories = listOf("All", "🇮🇳 Indian / Hindi", "Music", "Relax", "Workout", "Gaming/Phonk")
+    val pullToRefreshState = androidx.compose.material3.pulltorefresh.rememberPullToRefreshState()
 
     PullToRefreshBox(
         isRefreshing = isLoading,
         onRefresh = { viewModel.loadHomeData() },
+        state = pullToRefreshState,
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
         indicator = {
             PullToRefreshDefaults.Indicator(
-                state = it,
+                state = pullToRefreshState,
                 isRefreshing = isLoading,
                 modifier = Modifier.align(Alignment.TopCenter),
                 containerColor = CardSurface,
@@ -109,10 +114,10 @@ fun HomeScreen(
                 )
 
                 Row {
-                    IconButton(onClick = { viewModel.loadHomeData() }) {
+                    IconButton(onClick = { viewModel.setTab(ScreenTab.HISTORY) }) {
                         Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Refresh Charts",
+                            imageVector = Icons.Default.History,
+                            contentDescription = "Previously Listened",
                             tint = TextPrimary
                         )
                     }
@@ -121,6 +126,14 @@ fun HomeScreen(
                         Icon(
                             imageVector = Icons.Default.Equalizer,
                             contentDescription = "Adi Wrapped",
+                            tint = TextPrimary
+                        )
+                    }
+
+                    IconButton(onClick = { viewModel.setTab(ScreenTab.NOTIFICATION_CENTER) }) {
+                        Icon(
+                            imageVector = Icons.Default.Notifications,
+                            contentDescription = "Notification Control Center",
                             tint = TextPrimary
                         )
                     }
@@ -165,6 +178,28 @@ fun HomeScreen(
                         ),
                         shape = RoundedCornerShape(20.dp)
                     )
+                }
+            }
+        }
+
+        // Previously Listened Shelf
+        if (recentlyPlayed.isNotEmpty()) {
+            item {
+                SectionHeader(
+                    title = "Previously Listened",
+                    actionText = "See All",
+                    onActionClick = { viewModel.setTab(ScreenTab.HISTORY) }
+                )
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    items(recentlyPlayed, key = { it.id }) { song ->
+                        AlbumCard(
+                            song = song,
+                            onClick = { viewModel.playSong(song, recentlyPlayed) }
+                        )
+                    }
                 }
             }
         }
@@ -238,6 +273,34 @@ fun HomeScreen(
                             AlbumCard(
                                 song = song,
                                 onClick = { viewModel.playSong(song, songs) }
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Dedicated Indian & Bollywood Hits Carousel with Synced Hindi & English Lyrics
+            val indianSongs = songs.filter {
+                com.example.data.remote.IndianLyricsHelper.isIndianMusic(it.title, it.artist)
+            }
+            if (indianSongs.isNotEmpty()) {
+                item {
+                    SectionHeader(
+                        title = "🇮🇳 Trending Bollywood & Indian Hits",
+                        actionText = "Dual Lyrics",
+                        onActionClick = {
+                            viewModel.playSong(indianSongs.first(), indianSongs)
+                            viewModel.setLyricsVisible(true)
+                        }
+                    )
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        items(indianSongs, key = { it.id }) { song ->
+                            AlbumCard(
+                                song = song,
+                                onClick = { viewModel.playSong(song, indianSongs) }
                             )
                         }
                     }
@@ -332,14 +395,34 @@ fun HomeScreen(
 }
 
 @Composable
-private fun SectionHeader(title: String) {
-    Text(
-        text = title,
-        color = TextPrimary,
-        fontSize = 18.sp,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(start = 16.dp, top = 20.dp, bottom = 4.dp)
-    )
+private fun SectionHeader(
+    title: String,
+    actionText: String? = null,
+    onActionClick: (() -> Unit)? = null
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            color = TextPrimary,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
+        )
+        if (actionText != null && onActionClick != null) {
+            Text(
+                text = actionText,
+                color = SpotifyGreen,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.clickable { onActionClick() }
+            )
+        }
+    }
 }
 
 private fun rememberGreeting(): String {

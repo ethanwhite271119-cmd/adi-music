@@ -11,17 +11,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.BluetoothAudio
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.SportsEsports
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Tune
+import com.example.data.model.LyricsDisplayMode
+import com.example.service.NotificationHelper
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -66,6 +73,8 @@ fun SettingsScreen(
     val pureAmoled by viewModel.pureAmoled.collectAsState()
     val crossfade by viewModel.crossfadeSeconds.collectAsState()
     val gamingBubble by viewModel.gamingBubbleEnabled.collectAsState()
+    val bluetoothInfo by viewModel.controller.bluetoothDeviceInfo.collectAsState()
+    val lyricsMode by viewModel.lyricsMode.collectAsState()
 
     var gapless by remember { mutableStateOf(true) }
     var skipSilence by remember { mutableStateOf(false) }
@@ -164,6 +173,215 @@ fun SettingsScreen(
                 checked = audioNormalization,
                 onCheckedChange = { audioNormalization = it }
             )
+        }
+
+        // Indian & Hindi/English Lyrics Preference
+        item {
+            SectionTitle("🇮🇳 Indian & Hindi Lyrics Mode")
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                colors = CardDefaults.cardColors(containerColor = CardSurface)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Preferred Lyrics Language & Script",
+                        color = TextPrimary,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = "Controls whether Hindi songs display Devanagari, English Hinglish, or Dual simultaneously",
+                        color = TextSecondary,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 2.dp, bottom = 12.dp)
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        LyricsDisplayMode.values().forEach { mode ->
+                            val isSelected = lyricsMode == mode
+                            Button(
+                                onClick = { viewModel.setLyricsMode(mode) },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (isSelected) SpotifyGreen else CardSurfaceVariant,
+                                    contentColor = if (isSelected) Color.Black else TextPrimary
+                                ),
+                                shape = RoundedCornerShape(16.dp),
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(
+                                    text = mode.shortLabel,
+                                    fontSize = 11.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Active mode: ${lyricsMode.title} — ${lyricsMode.description}",
+                        color = SpotifyGreen,
+                        fontSize = 11.sp
+                    )
+                }
+            }
+        }
+
+        // Bluetooth & Hardware Controls
+        item {
+            SectionTitle("Bluetooth & Audio Output")
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                colors = CardDefaults.cardColors(containerColor = CardSurface)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Current Audio Output",
+                                color = TextPrimary,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = if (bluetoothInfo.isBluetoothConnected) "Connected: ${bluetoothInfo.deviceName}" else "Device: Phone Speaker",
+                                color = if (bluetoothInfo.isBluetoothConnected) SpotifyGreen else TextSecondary,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+
+                        Button(
+                            onClick = {
+                                viewModel.controller.bluetoothDeviceManager.openBluetoothSettings()
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = SpotifyGreen,
+                                contentColor = Color.Black
+                            ),
+                            shape = RoundedCornerShape(20.dp),
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Bluetooth,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Pair / Switch", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Hardware remote controls (earbud tap, headphone buttons, and car steering wheel) are fully enabled.",
+                        color = TextMuted,
+                        fontSize = 11.sp
+                    )
+                }
+            }
+
+            SettingToggleItem(
+                icon = Icons.Default.BluetoothAudio,
+                title = "Auto-Pause on Disconnect",
+                subtitle = "Pauses music when Bluetooth device disconnects",
+                checked = bluetoothInfo.isPauseOnDisconnectEnabled,
+                onCheckedChange = {
+                    viewModel.controller.bluetoothDeviceManager.setPauseOnDisconnectEnabled(it)
+                }
+            )
+
+            SettingToggleItem(
+                icon = Icons.Default.Bluetooth,
+                title = "Auto-Resume on Connect",
+                subtitle = "Resumes playback when Bluetooth device reconnects",
+                checked = bluetoothInfo.isAutoResumeEnabled,
+                onCheckedChange = {
+                    viewModel.controller.bluetoothDeviceManager.setAutoResumeEnabled(it)
+                }
+            )
+        }
+
+        // Notification & Lockscreen Media Controls
+        item {
+            SectionTitle("Device Notification Menu & Lockscreen")
+
+            val hasNotificationPermission = NotificationHelper.hasNotificationPermission(context)
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                colors = CardDefaults.cardColors(containerColor = CardSurface)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Media Notification Controls",
+                                color = TextPrimary,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = if (hasNotificationPermission) "Active in notification shade & lockscreen" else "Permission required for notification bar",
+                                color = if (hasNotificationPermission) SpotifyGreen else TextSecondary,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+
+                        Button(
+                            onClick = {
+                                viewModel.setTab(ScreenTab.NOTIFICATION_CENTER)
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = SpotifyGreen,
+                                contentColor = Color.Black
+                            ),
+                            shape = RoundedCornerShape(20.dp),
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Tune,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Control Center",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Real-time interactive media playback controls (Previous, Play/Pause, Next), album artwork, seekbar scrub, and song metadata in the Android notification drawer and lockscreen media carousel.",
+                        color = TextMuted,
+                        fontSize = 11.sp
+                    )
+                }
+            }
         }
 
         // Gaming & Background Audio

@@ -17,7 +17,9 @@ class AdiMusicNotificationProvider(private val context: Context) : MediaNotifica
     private val defaultProvider = DefaultMediaNotificationProvider.Builder(context)
         .setChannelId(NotificationHelper.CHANNEL_ID)
         .setNotificationId(NotificationHelper.NOTIFICATION_ID)
-        .build()
+        .build().apply {
+            setSmallIcon(R.drawable.ic_notification)
+        }
 
     override fun createNotification(
         mediaSession: MediaSession,

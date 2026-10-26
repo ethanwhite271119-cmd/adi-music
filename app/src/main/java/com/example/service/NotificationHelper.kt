@@ -7,6 +7,9 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.core.content.ContextCompat
 
 object NotificationHelper {
@@ -38,6 +41,57 @@ object NotificationHelper {
             ) == PackageManager.PERMISSION_GRANTED
         } else {
             true
+        }
+    }
+
+    fun openNotificationSettings(context: Context) {
+        try {
+            val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+            } else {
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.parse("package:${context.packageName}")
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+            }
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun triggerNotificationRefresh(context: Context) {
+        try {
+            AdiMusicService.startService(context)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun areNotificationsEnabledInSystem(context: Context): Boolean {
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+        return manager?.areNotificationsEnabled() ?: hasNotificationPermission(context)
+    }
+
+    fun sendTestNotification(context: Context, title: String = "Adi Music Control Center", artist: String = "Notification Active & Synced") {
+        try {
+            createNotificationChannel(context)
+            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
+            val notification = androidx.core.app.NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(com.example.R.drawable.ic_notification)
+                .setContentTitle(title)
+                .setContentText(artist)
+                .setPriority(androidx.core.app.NotificationCompat.PRIORITY_LOW)
+                .setVisibility(androidx.core.app.NotificationCompat.VISIBILITY_PUBLIC)
+                .setAutoCancel(true)
+                .build()
+
+            manager.notify(NOTIFICATION_ID + 10, notification)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }

@@ -4,7 +4,9 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.AdiMusicApplication
+import com.example.data.local.HistorySongRecord
 import com.example.data.model.LyricLine
+import com.example.data.model.LyricsDisplayMode
 import com.example.data.model.Playlist
 import com.example.data.model.Song
 import com.example.data.repository.MusicRepository
@@ -19,13 +21,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+import com.example.service.NotificationControlConfig
+import com.example.service.CompactPreset
+
 enum class ScreenTab {
     HOME,
     SEARCH,
     LIBRARY,
     LOCAL_DEVICE,
     WRAPPED,
-    SETTINGS
+    SETTINGS,
+    HISTORY,
+    NOTIFICATION_CENTER
 }
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -102,6 +109,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _isLoadingLyrics = MutableStateFlow(false)
     val isLoadingLyrics: StateFlow<Boolean> = _isLoadingLyrics.asStateFlow()
 
+    // Indian & Bilingual Hindi/English Lyrics Mode
+    private val _lyricsMode = MutableStateFlow(LyricsDisplayMode.BILINGUAL)
+    val lyricsMode: StateFlow<LyricsDisplayMode> = _lyricsMode.asStateFlow()
+
+    fun setLyricsMode(mode: LyricsDisplayMode) {
+        _lyricsMode.value = mode
+    }
+
+    // Notification Control Center Configuration
+    private val _notificationConfig = MutableStateFlow(NotificationControlConfig())
+    val notificationConfig: StateFlow<NotificationControlConfig> = _notificationConfig.asStateFlow()
+
+    fun updateNotificationConfig(transform: (NotificationControlConfig) -> NotificationControlConfig) {
+        _notificationConfig.value = transform(_notificationConfig.value)
+    }
+
     // Wrapped Stats
     private val _wrappedStats = MutableStateFlow<WrappedStats?>(null)
     val wrappedStats: StateFlow<WrappedStats?> = _wrappedStats.asStateFlow()
@@ -117,6 +140,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     val playlists: StateFlow<List<Playlist>> = repository.getAllPlaylists()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val previouslyPlayed: StateFlow<List<HistorySongRecord>> = repository.getPreviouslyPlayedRecords()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val recentlyPlayedDistinct: StateFlow<List<Song>> = repository.getRecentlyPlayedDistinct()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun clearListeningHistory() {
+        viewModelScope.launch {
+            repository.clearListeningHistory()
+        }
+    }
+
+    fun deleteHistoryEntry(historyId: Long) {
+        viewModelScope.launch {
+            repository.deleteHistoryEntry(historyId)
+        }
+    }
 
     private var searchJob: Job? = null
 

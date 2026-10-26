@@ -53,11 +53,13 @@ import com.example.ui.ScreenTab
 import com.example.ui.components.MiniPlayer
 import com.example.ui.components.QueueSheet
 import com.example.ui.screens.EqualizerScreen
+import com.example.ui.screens.HistoryScreen
 import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.LibraryScreen
 import com.example.ui.screens.LocalSongsScreen
 import com.example.ui.screens.LyricsScreen
 import com.example.ui.screens.NowPlayingScreen
+import com.example.ui.screens.NotificationControlCenterScreen
 import com.example.ui.screens.SearchScreen
 import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.StatsWrappedScreen
@@ -118,6 +120,7 @@ fun AdiMusicApp(
         ) {
             viewModel.scanLocalFiles()
         }
+        viewModel.controller.bluetoothDeviceManager.refreshAudioDeviceState()
     }
 
     LaunchedEffect(Unit) {
@@ -126,6 +129,10 @@ fun AdiMusicApp(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
                 permissionsToRequest.add(Manifest.permission.READ_MEDIA_AUDIO)
+                permissionsToRequest.add(Manifest.permission.BLUETOOTH_CONNECT)
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                permissionsToRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+                permissionsToRequest.add(Manifest.permission.BLUETOOTH_CONNECT)
             } else {
                 permissionsToRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE)
             }
@@ -255,6 +262,14 @@ fun AdiMusicApp(
                     )
                     ScreenTab.WRAPPED -> StatsWrappedScreen(viewModel = viewModel)
                     ScreenTab.SETTINGS -> SettingsScreen(viewModel = viewModel)
+                    ScreenTab.HISTORY -> HistoryScreen(
+                        viewModel = viewModel,
+                        onBackClick = { viewModel.setTab(ScreenTab.HOME) }
+                    )
+                    ScreenTab.NOTIFICATION_CENTER -> NotificationControlCenterScreen(
+                        viewModel = viewModel,
+                        onBackClick = { viewModel.setTab(ScreenTab.SETTINGS) }
+                    )
                 }
             }
         }

@@ -3,6 +3,7 @@ package com.example.data.repository
 import android.content.Context
 import com.example.data.local.AppDatabase
 import com.example.data.local.ArtistPlayCount
+import com.example.data.local.HistorySongRecord
 import com.example.data.local.ListeningHistoryEntity
 import com.example.data.local.LocalAudioScanner
 import com.example.data.local.PlaylistEntity
@@ -29,8 +30,11 @@ class MusicRepository(private val context: Context) {
     private val musicApiClient = MusicApiClient()
 
     suspend fun initializeDatabaseIfNeeded() = withContext(Dispatchers.IO) {
+        val indianTracks = musicApiClient.getCuratedIndianTracks()
+        songDao.insertSongs(indianTracks.map { it.toEntity() })
+
         val existing = songDao.getAllSongs().firstOrNull()
-        if (existing.isNullOrEmpty()) {
+        if (existing.isNullOrEmpty() || existing.size <= indianTracks.size) {
             val liveTracks = musicApiClient.getTopCharts()
             if (liveTracks.isNotEmpty()) {
                 songDao.insertSongs(liveTracks.map { it.toEntity() })
@@ -51,21 +55,24 @@ class MusicRepository(private val context: Context) {
     }
 
     suspend fun fetchLiveTopCharts(): List<Song> = withContext(Dispatchers.IO) {
+        val indianTracks = musicApiClient.getCuratedIndianTracks()
         try {
             val liveTracks = musicApiClient.getTopCharts()
-            if (liveTracks.isNotEmpty()) {
-                songDao.insertSongs(liveTracks.map { it.toEntity() })
-                return@withContext liveTracks
+            val combined = (indianTracks + liveTracks).distinctBy { "${it.title.lowercase()}_${it.artist.lowercase()}" }
+            if (combined.isNotEmpty()) {
+                songDao.insertSongs(combined.map { it.toEntity() })
+                return@withContext combined
             }
         } catch (e: Exception) {
             e.printStackTrace()
         }
         try {
             val cached = songDao.getAllSongs().firstOrNull()?.map { it.toModel() }
-            cached ?: emptyList()
-        } catch (_: Exception) {
-            emptyList()
-        }
+            if (!cached.isNullOrEmpty()) {
+                return@withContext (indianTracks + cached).distinctBy { "${it.title.lowercase()}_${it.artist.lowercase()}" }
+            }
+        } catch (_: Exception) {}
+        indianTracks
     }
 
     suspend fun fetchCategoryTracks(category: String): List<Song> = withContext(Dispatchers.IO) {
@@ -184,6 +191,7 @@ class MusicRepository(private val context: Context) {
     }
 
     suspend fun recordListening(song: Song, durationSec: Long = 60) = withContext(Dispatchers.IO) {
+        songDao.insertSong(song.toEntity())
         songDao.incrementPlayCount(song.id)
         songDao.insertHistory(
             ListeningHistoryEntity(
@@ -195,6 +203,22 @@ class MusicRepository(private val context: Context) {
                 durationListenedSeconds = durationSec
             )
         )
+    }
+
+    fun getPreviouslyPlayedRecords(limit: Int = 60): Flow<List<HistorySongRecord>> {
+        return songDao.getPreviouslyPlayedRecords(limit)
+    }
+
+    fun getRecentlyPlayedDistinct(limit: Int = 15): Flow<List<Song>> {
+        return songDao.getDistinctRecentlyPlayed(limit).map { list -> list.map { it.toModel() } }
+    }
+
+    suspend fun deleteHistoryEntry(historyId: Long) = withContext(Dispatchers.IO) {
+        songDao.deleteHistoryEntry(historyId)
+    }
+
+    suspend fun clearListeningHistory() = withContext(Dispatchers.IO) {
+        songDao.clearListeningHistory()
     }
 
     suspend fun getSyncedLyrics(song: Song): List<LyricLine> {

@@ -87,6 +87,8 @@ fun LibraryScreen(
 
     val filters = listOf("All", "Playlists", "Liked", "Downloaded", "Local Files")
 
+    val pullToRefreshState = androidx.compose.material3.pulltorefresh.rememberPullToRefreshState()
+
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = {
@@ -97,12 +99,13 @@ fun LibraryScreen(
                 isRefreshing = false
             }
         },
+        state = pullToRefreshState,
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
         indicator = {
             PullToRefreshDefaults.Indicator(
-                state = it,
+                state = pullToRefreshState,
                 isRefreshing = isRefreshing,
                 modifier = Modifier.align(Alignment.TopCenter),
                 containerColor = CardSurface,
@@ -305,6 +308,7 @@ fun LibraryScreen(
             }
         }
     }
+}
 }
 
 @Composable
