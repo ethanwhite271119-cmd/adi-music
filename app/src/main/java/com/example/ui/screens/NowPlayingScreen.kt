@@ -326,9 +326,15 @@ fun NowPlayingScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    val displayedPosition = if (isSeeking) (seekProgress * duration).toLong() else currentPosition
+                    val effectiveDuration = if (duration > 0L) duration else (song.durationMs.takeIf { it > 0L } ?: 0L)
+                    val displayedPosition = if (isSeeking) (seekProgress * effectiveDuration).toLong() else currentPosition
                     Text(text = formatTime(displayedPosition), color = TextSecondary, fontSize = 12.sp)
-                    Text(text = formatTime(duration), color = TextSecondary, fontSize = 12.sp)
+                    Text(
+                        text = if (effectiveDuration > 0L) formatTime(effectiveDuration) else "LIVE",
+                        color = if (effectiveDuration <= 0L) SpotifyGreen else TextSecondary,
+                        fontSize = 12.sp,
+                        fontWeight = if (effectiveDuration <= 0L) FontWeight.Bold else FontWeight.Normal
+                    )
                 }
             }
 

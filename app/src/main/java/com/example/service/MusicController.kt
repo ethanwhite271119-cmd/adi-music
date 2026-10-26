@@ -16,10 +16,17 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.MimeTypes
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.extractor.DefaultExtractorsFactory
+import androidx.media3.extractor.mp4.Mp4Extractor
 import androidx.media3.session.MediaSession
 import com.example.MainActivity
 import com.example.data.model.Song
@@ -37,8 +44,21 @@ import kotlinx.coroutines.launch
 class MusicController(private val context: Context) {
     private val scope = CoroutineScope(Dispatchers.Main + Job())
 
+    private val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+        .setUserAgent("Mozilla/5.0 (Linux; Android 14; Mobile) AdiMusic/1.0")
+        .setAllowCrossProtocolRedirects(true)
+        .setConnectTimeoutMs(15000)
+        .setReadTimeoutMs(25000)
+        .setKeepPostFor302Redirects(true)
+
+    private val dataSourceFactory = DefaultDataSource.Factory(context, httpDataSourceFactory)
+
+    private val extractorsFactory = DefaultExtractorsFactory()
+        .setConstantBitrateSeekingEnabled(true)
+
     val player: ExoPlayer = ExoPlayer.Builder(context)
         .setLooper(Looper.getMainLooper())
+        .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory, extractorsFactory))
         .setAudioAttributes(
             AudioAttributes.Builder()
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
@@ -138,15 +158,44 @@ class MusicController(private val context: Context) {
             }
 
             override fun onPlaybackStateChanged(playbackState: Int) {
-                if (playbackState == Player.STATE_READY) {
-                    _duration.value = player.duration.coerceAtLeast(0L)
-                    attachAudioEffects()
-                } else if (playbackState == Player.STATE_ENDED) {
-                    if (_isSleepTimerEndOfTrack.value) {
-                        cancelSleepTimer()
-                        player.pause()
-                    } else {
-                        skipNext()
+                when (playbackState) {
+                    Player.STATE_READY -> {
+                        val playerDur = player.duration
+                        if (playerDur > 0L && playerDur != C.TIME_UNSET) {
+                            _duration.value = playerDur
+                        } else if ((_currentSong.value?.durationMs ?: 0L) > 0L) {
+                            _duration.value = _currentSong.value!!.durationMs
+                        }
+                        attachAudioEffects()
+                    }
+                    Player.STATE_ENDED -> {
+                        if (_isSleepTimerEndOfTrack.value) {
+                            cancelSleepTimer()
+                            player.pause()
+                        } else {
+                            skipNext()
+                        }
+                    }
+                    Player.STATE_BUFFERING -> {
+                        // Keep position and duration stable
+                    }
+                    Player.STATE_IDLE -> {
+                        // Player idle
+                    }
+                }
+            }
+
+            override fun onPlayerError(error: PlaybackException) {
+                android.util.Log.e("MusicController", "ExoPlayer error [${error.errorCodeName}]: ${error.message}", error)
+                scope.launch {
+                    delay(1000)
+                    if (_isPlaying.value && player.playbackState == Player.STATE_IDLE) {
+                        if (_queue.value.size > 1) {
+                            skipNext()
+                        } else {
+                            player.prepare()
+                            player.play()
+                        }
                     }
                 }
             }
@@ -160,18 +209,32 @@ class MusicController(private val context: Context) {
                 val found = _queue.value.find { it.id == mediaId }
                 if (found != null) {
                     _currentSong.value = found
+                    _currentPosition.value = 0L
+                    if (found.durationMs > 0L) {
+                        _duration.value = found.durationMs
+                    }
                 }
             }
         })
 
-        // Position ticker coroutine
+        // Position ticker coroutine with smooth real-time position & duration updates
         scope.launch {
             while (isActive) {
-                if (player.isPlaying) {
-                    _currentPosition.value = player.currentPosition.coerceAtLeast(0L)
-                    _duration.value = player.duration.coerceAtLeast(0L)
-                }
-                delay(300)
+                try {
+                    val state = player.playbackState
+                    if (state == Player.STATE_READY || state == Player.STATE_BUFFERING || player.isPlaying) {
+                        val pos = player.currentPosition.coerceAtLeast(0L)
+                        _currentPosition.value = pos
+
+                        val dur = player.duration
+                        if (dur > 0L && dur != C.TIME_UNSET) {
+                            _duration.value = dur
+                        } else if (_duration.value <= 0L && (_currentSong.value?.durationMs ?: 0L) > 0L) {
+                            _duration.value = _currentSong.value!!.durationMs
+                        }
+                    }
+                } catch (_: Exception) {}
+                delay(200)
             }
         }
 
@@ -203,9 +266,11 @@ class MusicController(private val context: Context) {
         val newQueue = if (playlist.isNotEmpty()) playlist else listOf(song)
         _queue.value = newQueue
         _currentSong.value = song
+        _currentPosition.value = 0L
+        _duration.value = if (song.durationMs > 0L) song.durationMs else 180000L
 
         val mediaItems = newQueue.map { s ->
-            MediaItem.Builder()
+            val builder = MediaItem.Builder()
                 .setMediaId(s.id)
                 .setUri(Uri.parse(s.streamUrl))
                 .setMediaMetadata(
@@ -216,7 +281,18 @@ class MusicController(private val context: Context) {
                         .setArtworkUri(if (s.artworkUri.isNotBlank()) Uri.parse(s.artworkUri) else null)
                         .build()
                 )
-                .build()
+
+            val mimeType = when {
+                s.streamUrl.endsWith(".mp3", ignoreCase = true) -> MimeTypes.AUDIO_MPEG
+                s.streamUrl.contains(".m4a", ignoreCase = true) || s.streamUrl.contains(".mp4", ignoreCase = true) -> MimeTypes.AUDIO_MP4
+                s.streamUrl.contains(".aac", ignoreCase = true) -> MimeTypes.AUDIO_AAC
+                s.streamUrl.contains("audio-ssl.itunes.apple.com") -> MimeTypes.AUDIO_MP4
+                else -> null
+            }
+            if (mimeType != null) {
+                builder.setMimeType(mimeType)
+            }
+            builder.build()
         }
 
         player.setMediaItems(mediaItems)

@@ -311,13 +311,14 @@ fun NotificationControlCenterScreen(
                         // Live Interactive Seekbar
                         if (config.showSeekbar) {
                             Spacer(modifier = Modifier.height(10.dp))
-                            val progress = if (duration > 0) (currentPosition.toFloat() / duration.toFloat()).coerceIn(0f, 1f) else 0f
+                            val effectiveDur = if (duration > 0) duration else (currentSong?.durationMs?.takeIf { it > 0 } ?: 0L)
+                            val progress = if (effectiveDur > 0) (currentPosition.toFloat() / effectiveDur.toFloat()).coerceIn(0f, 1f) else 0f
 
                             Slider(
                                 value = progress,
                                 onValueChange = { frac ->
-                                    if (duration > 0) {
-                                        viewModel.controller.seekTo((frac * duration).toLong())
+                                    if (effectiveDur > 0) {
+                                        viewModel.controller.seekTo((frac * effectiveDur).toLong())
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth(),
@@ -335,7 +336,12 @@ fun NotificationControlCenterScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(text = formatMs(currentPosition), color = TextMuted, fontSize = 11.sp)
-                                Text(text = formatMs(duration), color = TextMuted, fontSize = 11.sp)
+                                Text(
+                                    text = if (effectiveDur > 0L) formatMs(effectiveDur) else "LIVE",
+                                    color = if (effectiveDur <= 0L) SpotifyGreen else TextMuted,
+                                    fontSize = 11.sp,
+                                    fontWeight = if (effectiveDur <= 0L) FontWeight.Bold else FontWeight.Normal
+                                )
                             }
                         }
 

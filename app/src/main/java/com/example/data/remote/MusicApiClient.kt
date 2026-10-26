@@ -86,7 +86,7 @@ class MusicApiClient {
                 artist = "Arijit Singh, Pritam",
                 album = "Brahmastra",
                 artworkUri = "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/9f/13/ca/9f13ca3b-e533-03e0-f19a-f0aaa774581d/196589311191.jpg/600x600bb.jpg",
-                streamUrl = "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/38/4c/5c/384c5c8f-3ff8-e457-b2f7-3158ce108649/mzaf_12389299033886433185.plus.aac.p.m4a",
+                streamUrl = "https://archive.org/download/best-of-2022-bollywood-songs/Brahmastra%20%282022%29%20-%20Kesariya.mp3",
                 durationMs = 268000L,
                 genre = "Bollywood / Hindi"
             ),
@@ -96,7 +96,7 @@ class MusicApiClient {
                 artist = "Arijit Singh, Mithoon",
                 album = "Aashiqui 2",
                 artworkUri = "https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/08/94/3e/08943ee6-e820-22fc-26e6-6e82ee80f08e/8902894353459_cover.jpg/600x600bb.jpg",
-                streamUrl = "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/3a/8c/9b/3a8c9b0b-2def-750a-f615-1555bf941edf/mzaf_17229496441442805917.plus.aac.p.m4a",
+                streamUrl = "https://archive.org/download/arijit-singh-tum-hi-ho-myfreemp-3.vip/Arijit%20Singh%20-%20Tum%20Hi%20Ho%20myfreemp3.vip%20.mp3",
                 durationMs = 262000L,
                 genre = "Hindi Romantic"
             ),
@@ -106,19 +106,9 @@ class MusicApiClient {
                 artist = "Arijit Singh, Sachin-Jigar",
                 album = "Bhediya",
                 artworkUri = "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/6c/13/ee/6c13eeef-9c94-d2ec-246e-1da5d6101c51/196589578143.jpg/600x600bb.jpg",
-                streamUrl = "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/eb/27/61/eb2761c7-d606-0912-dff0-2dc6b69974bd/mzaf_2023722930851223219.plus.aac.p.m4a",
+                streamUrl = "https://archive.org/download/best-of-2022-bollywood-songs/Bhediya%20%282022%29%20-%20Apna%20Bana%20Le.mp3",
                 durationMs = 261000L,
                 genre = "Bollywood Romantic"
-            ),
-            Song(
-                id = "in_husn",
-                title = "Husn (हुस्न)",
-                artist = "Anuv Jain",
-                album = "Husn Single",
-                artworkUri = "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/04/b3/ef/04b3ef86-f78a-c60f-e685-6495db368528/859779374092_cover.jpg/600x600bb.jpg",
-                streamUrl = "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/e4/55/54/e455541c-5130-bc7d-5249-7f7c92e50d3d/mzaf_5017664543802375133.plus.aac.p.m4a",
-                durationMs = 217000L,
-                genre = "Indian Indie"
             ),
             Song(
                 id = "in_channamereya",
@@ -126,7 +116,7 @@ class MusicApiClient {
                 artist = "Arijit Singh, Pritam",
                 album = "Ae Dil Hai Mushkil",
                 artworkUri = "https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/ca/87/a2/ca87a229-3b95-ef6c-7e61-a5bf775ee808/886446187834.jpg/600x600bb.jpg",
-                streamUrl = "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/d0/a6/3c/d0a63c52-d2a1-2e1b-a221-f011a1500b8a/mzaf_5133687548743640142.plus.aac.p.m4a",
+                streamUrl = "https://archive.org/download/07-channa-mereya-arijit-singh-320-kbps/07%20Channa%20Mereya%20-%20Arijit%20Singh%20320Kbps.mp3",
                 durationMs = 289000L,
                 genre = "Sufi & Soul"
             ),
@@ -136,19 +126,59 @@ class MusicApiClient {
                 artist = "Jubin Nautiyal, Asees Kaur",
                 album = "Shershaah",
                 artworkUri = "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/01/24/76/01247657-fc7a-d04b-325d-4f1ef59ff4e6/8902894360341_cover.jpg/600x600bb.jpg",
-                streamUrl = "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/ff/7a/7a/ff7a7a63-9947-cefa-e269-ad9602fb1ca3/mzaf_14039909875904828823.plus.aac.p.m4a",
+                streamUrl = "https://archive.org/download/raataan-lambiyan/Raataan%20Lambiyan.mp3",
                 durationMs = 230000L,
                 genre = "Punjabi Bollywood"
             ),
             Song(
-                id = "in_pasoori",
-                title = "Pasoori (पसूरी)",
-                artist = "Ali Sethi, Shae Gill",
-                album = "Coke Studio Season 14",
-                artworkUri = "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/f1/a0/0a/f1a00a12-82dc-eb4b-149b-38148b8cfeb5/196626639530.jpg/600x600bb.jpg",
-                streamUrl = "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview126/v4/62/33/1e/62331ea8-d1df-027d-fe75-ac16a519323d/mzaf_14381883946572745360.plus.aac.p.m4a",
-                durationMs = 224000L,
-                genre = "Desi Global"
+                id = "in_kabira",
+                title = "Kabira (कबीरा)",
+                artist = "Arijit Singh, Harshdeep Kaur, Pritam",
+                album = "Yeh Jawaani Hai Deewani",
+                artworkUri = "https://is1-ssl.mzstatic.com/image/thumb/Music/v4/2c/31/58/2c3158c3-f682-1435-0810-727878eead72/886444004942.jpg/600x600bb.jpg",
+                streamUrl = "https://archive.org/download/arijit-singh-tum-hi-ho-myfreemp-3.vip/Arijit%20Singh%20-%20Kabira%20myfreemp3.vip%20.mp3",
+                durationMs = 287000L,
+                genre = "Bollywood Soul"
+            ),
+            Song(
+                id = "in_tujhekitna",
+                title = "Tujhe Kitna Chahne Lage (तुझे कितना चाहने लगे)",
+                artist = "Arijit Singh, Mithoon",
+                album = "Kabir Singh",
+                artworkUri = "https://is1-ssl.mzstatic.com/image/thumb/Music113/v4/95/8e/31/958e312e-2f92-9a00-1c5c-7f511739c6be/8902894356771_cover.jpg/600x600bb.jpg",
+                streamUrl = "https://archive.org/download/arijit-singh-tum-hi-ho-myfreemp-3.vip/Arijit%20Singh%20-%20Tujhe%20Kitna%20Chahne%20Lage%20myfreemp3.vip%20.mp3",
+                durationMs = 284000L,
+                genre = "Bollywood Romantic"
+            ),
+            Song(
+                id = "in_phirmohabbat",
+                title = "Phir Mohabbat (फिर मोहब्बत)",
+                artist = "Arijit Singh, Mohd Irfan",
+                album = "Murder 2",
+                artworkUri = "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/21/cf/30/21cf30a2-e6e7-aa23-8686-2a865f3f4e24/8902894352131_cover.jpg/600x600bb.jpg",
+                streamUrl = "https://archive.org/download/arijit-singh-tum-hi-ho-myfreemp-3.vip/Arijit%20Singh%20-%20Phir%20Mohabbat%20myfreemp3.vip%20.mp3",
+                durationMs = 274000L,
+                genre = "Hindi Romantic"
+            ),
+            Song(
+                id = "in_husn",
+                title = "Husn (हुस्न)",
+                artist = "Anuv Jain",
+                album = "Husn Single",
+                artworkUri = "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/04/b3/ef/04b3ef86-f78a-c60f-e685-6495db368528/859779374092_cover.jpg/600x600bb.jpg",
+                streamUrl = "https://archive.org/download/yt2ia-UCo36OSM_dp0KynQ02zibnsQ/yt2ia-UCo36OSM_dp0KynQ02zibnsQ.mp3",
+                durationMs = 217000L,
+                genre = "Indian Indie"
+            ),
+            Song(
+                id = "in_bollywood_radio",
+                title = "Bollywood Hits 24/7 (लाइव रेडियो)",
+                artist = "Radio Mirchi & Top Bollywood",
+                album = "Non-Stop Live Stream",
+                artworkUri = "https://cdn-images.dzcdn.net/images/cover/b868399da682f34dcd7d98af1c0de80b/500x500-000000-80-0-0.jpg",
+                streamUrl = "https://stream.zeno.fm/f3wvbbqmdg8uv",
+                durationMs = 0L,
+                genre = "24/7 Live Music"
             )
         )
     }
